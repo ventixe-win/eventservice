@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Application.Models;
+using Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Services;
 
 namespace WebApi.Controllers;
 
@@ -9,4 +9,30 @@ namespace WebApi.Controllers;
 public class EventsController(IEventService eventService) : ControllerBase
 {
     private readonly IEventService _eventService = eventService;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var events = await _eventService.GetEventsAsync();
+
+        return Ok(events);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(string id)
+    {
+        var currentEvent = await _eventService.GetEventAsync(id);
+        return currentEvent != null ? Ok(currentEvent) : NotFound();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateEventRequest req)
+    {
+        if (!ModelState.IsValid) 
+            return BadRequest(ModelState);
+
+        var result = await _eventService.CreateEventAsync(req);
+        return result.Success ? Ok(result) : StatusCode(500,result.Error);
+    }
+
 }
